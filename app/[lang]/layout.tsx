@@ -29,14 +29,12 @@ export default async function RootLayout({
 
     return (
         <html lang={lang} suppressHydrationWarning>
-        <body className={inter.className}>
+        <body className={`${inter.className} theme-${siteConfig.theme}`}>
         <Providers>
             <ReduxProvider>
                 <AuthProvider>
                     <DirectionProvider lang={lang}>
-                        <body className={`${inter.className} theme-${siteConfig.theme}`}>
                         {children}
-                        </body>
                     </DirectionProvider>
                 </AuthProvider>
             </ReduxProvider>
