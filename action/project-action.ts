@@ -9,3 +9,5 @@ export async function swapBoardAction(..._args:any[]) {return;}
 export async function postCommentAction(..._args:any[]) {return;}
 export async function addSubTaskAction(..._args:any[]) {return;}
 export async function editBoardActionFn(..._args:any[]) {return;}
+export async function updateSubTaskAction(..._args:any[]) {return;}
+export async function deleteSubTaskAction(..._args:any[]) {return;}

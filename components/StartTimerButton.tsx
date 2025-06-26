@@ -44,6 +44,7 @@ export default function StartTimerButton({ ticketId }: { ticketId: string }) {
             const res = await fetch('/api/timer/start', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                // send the ticketId as originally provided; the API will coerce
                 body: JSON.stringify({ ticketId }),
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);

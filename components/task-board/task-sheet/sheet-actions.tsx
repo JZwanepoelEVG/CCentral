@@ -45,7 +45,7 @@ const SheetActions = ({ task, taskId }: {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            {task?.assign?.length > 0 && (
+            {(task?.assign?.length ?? 0) > 0 && (
               <AvatarGroup
                 countClass="w-5 h-5"
                 total={task?.assign?.length}
@@ -56,7 +56,7 @@ const SheetActions = ({ task, taskId }: {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Avatar className="w-5 h-5 ring-1 ring-background ring-offset-[2px]  ring-offset-background">
-                          <AvatarImage src={member.image.src} />
+                          <AvatarImage src={member.image?.src} />
                           <AvatarFallback></AvatarFallback>
                         </Avatar>
                       </TooltipTrigger>
