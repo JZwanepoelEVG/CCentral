@@ -35,7 +35,7 @@ const TaskItem = ({ subtask, handlerSubSheet }: {
   handlerSubSheet: () => void;
 }) => {
   const { completed, assignDate, id } = subtask;
-  const [isDone, setIsDone] = React.useState<boolean>(completed);
+  const [isDone, setIsDone] = React.useState<boolean>(completed ?? false);
   // update isComplete
   const [open, setOpen] = useState<boolean>(false);
 
@@ -92,11 +92,11 @@ const TaskItem = ({ subtask, handlerSubSheet }: {
             </div>
             <div className="flex-none flex items-center gap-2">
               {/* assigned members */}
-              {subtask?.assign?.length > 0 && (
+              {(subtask?.assign?.length ?? 0) > 0 && (
                 <div>
                   <AvatarGroup
                     max={3}
-                    total={subtask.assign.length}
+                    total={subtask.assign?.length ?? 0}
                     countClass="w-7 h-7"
                   >
                     {subtask.assign?.map((user, i) => (
@@ -104,7 +104,7 @@ const TaskItem = ({ subtask, handlerSubSheet }: {
                         className=" ring-1 ring-background ring-offset-[2px]  ring-offset-background h-7 w-7"
                         key={`avatar-key-${i}`}
                       >
-                        <AvatarImage src={user.image} />
+                        <AvatarImage src={user.image ?? undefined} />
                         <AvatarFallback>AB</AvatarFallback>
                       </Avatar>
                     ))}

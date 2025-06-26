@@ -156,7 +156,7 @@ const Task = ({ task, onUpdateTask, boards }: TaskProps) => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="text-[10px] leading-[14px] font-semibold  text-default-600 border border-default-200 px-1.5  rounded-sm flex justify-center items-center gap-[2px]">
-                    {getBoardNameById(task.boardId)}
+                    {getBoardNameById(task.boardId as BoardType["id"])}
                     <ChevronDown className="w-3 h-3" />
                   </div>
                 </DropdownMenuTrigger>
@@ -220,7 +220,7 @@ const Task = ({ task, onUpdateTask, boards }: TaskProps) => {
 
           <div className="flex flex-wrap items-center gap-1 mt-2">
             <Badge
-              color={prioritiesColorMap[task.priority]}
+              color={task.priority ? prioritiesColorMap[task.priority] : undefined}
 
               className="text-[10px] px-1 py-0 rounded leading-4 capitalize"
             >
@@ -240,14 +240,14 @@ const Task = ({ task, onUpdateTask, boards }: TaskProps) => {
             <div onClick={(e) => e.stopPropagation()}>
               <AssignMembers icon={null} />
             </div>
-            {assign?.length > 0 && (
-              <AvatarGroup total={assign?.length} max={3} countClass="w-5 h-5">
+            {(assign?.length ?? 0) > 0 && (
+              <AvatarGroup total={assign?.length ?? 0} max={3} countClass="w-5 h-5">
                 {assign?.map((member, i) => (
                   <TooltipProvider key={`assign-member-task-${i}`}>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Avatar className="w-5 h-5 ring-1 ring-background ring-offset-[2px]  ring-offset-background">
-                          <AvatarImage src={member.image.src} />
+                          <AvatarImage src={member.image?.src} />
                           <AvatarFallback></AvatarFallback>
                         </Avatar>
                       </TooltipTrigger>

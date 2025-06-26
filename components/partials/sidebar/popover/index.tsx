@@ -17,7 +17,7 @@ import { usePathname } from "next/navigation";
 const PopoverSidebar = ({ trans }: { trans: string }) => {
   const { collapsed, sidebarBg } = useSidebar();
   const { layout, isRtl } = useThemeStore();
-  const menus = menusConfig?.sidebarNav?.classic || [];
+  const menus = menusConfig?.sidebarNav?.modern || [];
   const [activeSubmenu, setActiveSubmenu] = useState<number | null>(null);
   const [activeMultiMenu, setMultiMenu] = useState<number | null>(null);
 
@@ -98,7 +98,7 @@ const PopoverSidebar = ({ trans }: { trans: string }) => {
             <li key={`menu_key_${i}`}>
               {/* single menu  */}
 
-              {!item.child && !item.isHeader && (
+              {!('child' in item) && !(item as any).isHeader && (
                 <SingleMenuItem
                   item={item}
                   collapsed={collapsed}
@@ -107,7 +107,7 @@ const PopoverSidebar = ({ trans }: { trans: string }) => {
               )}
 
               {/* menu label */}
-              {item.isHeader && !item.child && !collapsed && (
+              {(item as any).isHeader && !('child' in item) && !collapsed && (
                 <MenuLabel item={item} trans={trans} />
               )}
 

@@ -238,7 +238,7 @@ const TaskTable = ({ data, boards, onUpdateTask, boardID2 }: TaskTableProps) => 
                 variant="soft"
                 className="flex items-center gap-1 text-sm font-medium  h-6 whitespace-nowrap"
               >
-                {getBoardNameById(row?.original.boardId)}{" "}
+                {getBoardNameById(row.original.boardId as BoardType["id"])}{" "}
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>

@@ -15,7 +15,12 @@ export async function POST(request: Request) {
 
     // 2) Parse body
     const { ticketId, comment } = await request.json();
-    if (typeof ticketId !== "number") {
+
+    // allow ticketId to come through as a string from older clients
+    const parsedId =
+        typeof ticketId === "string" ? parseInt(ticketId, 10) : ticketId;
+
+    if (typeof parsedId !== "number" || Number.isNaN(parsedId)) {
         return NextResponse.json(
             { success: false, error: "Missing or invalid ticketId" },
             { status: 400 }
@@ -25,7 +30,7 @@ export async function POST(request: Request) {
     // 3) Start timer
     const timer = await startTimerForUser(
         userId,
-        ticketId,
+        parsedId,
         lastModifiedUser,
         comment
     );
