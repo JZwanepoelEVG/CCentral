@@ -14,8 +14,7 @@ import StartTimerButton from "@/components/StartTimerButton";
 const TicketOverview = () => {
 
     const {ticketNo} = useParams();
-    // Ensure ticketNo is a string and convert to number
-    const ticketID = Array.isArray(ticketNo) ? parseInt(ticketNo[0]) : parseInt(ticketNo);
+    const ticketID = ticketNo ? (Array.isArray(ticketNo) ? parseInt(ticketNo[0]) : parseInt(ticketNo)) : 0;
 
     return (
         <div>
@@ -38,7 +37,7 @@ const TicketOverview = () => {
                         <CardHeader className={'mb-0'}>Action</CardHeader>
                         <CardContent className="p-4 flex flex-auto align-middle">
                             <div className={'grid grid-cols-3 gap-2 justify-center w-full'}>
-                                <StartTimerButton ticketId={ticketID} />
+                                <StartTimerButton ticketId={String(ticketID)} />
                             <Button size="icon" variant="outline" className="group w-full">
                                 <Icon icon="material-symbols:support" className=" h-6 w-6 " />
                             </Button>

@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import image from "@/public/images/all-img/man-with-laptop.png";
 import Image from "next/image";
 export default function MainMenu({ trans }: { trans: any }) {
-  const menus = menusConfig.mainNav || [];
+  const menus = menusConfig.sidebarNav.modern || [];
 
   const [offset, setOffset] = React.useState<number | null>(null);
   const [list, setList] = React.useState<HTMLUListElement | null | undefined>();
@@ -168,11 +168,12 @@ export default function MainMenu({ trans }: { trans: any }) {
 
 const ListItem = React.forwardRef<HTMLAnchorElement, any>(
   (
-    { className, children, title, childItem, trans, ...props },
+    { className, children, title, childItem, trans, href, ...props },
     forwardedRef
   ) => (
     <NavigationMenu.Link asChild>
       <Link
+        href={href ?? "#"}
         className={cn(
           " select-none   text-sm  text-default-700 rounded-md flex  items-center gap-2 mb-4 last:mb-0  leading-none no-underline outline-none transition-colors  hover:text-primary  focus:text-primary",
           className

@@ -15,7 +15,7 @@ const MobileSidebar = ({ className, trans }: { className?: string, trans: any })
   const { sidebarBg, mobileMenu, setMobileMenu } = useSidebar();
   const [activeSubmenu, setActiveSubmenu] = useState<number | null>(null);
   const [activeMultiMenu, setMultiMenu] = useState<number | null>(null);
-  const menus = menusConfig?.sidebarNav?.classic || [];
+  const menus = menusConfig?.sidebarNav?.modern || [];
   const { collapsed } = useSidebar();
 
   const toggleSubmenu = (i: number) => {
@@ -94,12 +94,12 @@ const MobileSidebar = ({ className, trans }: { className?: string, trans: any })
               <li key={`menu_key_${i}`}>
                 {/* single menu  */}
 
-                {!item.child && !item.isHeader && (
+                {!('child' in item) && !(item as any).isHeader && (
                   <SingleMenuItem item={item} collapsed={collapsed} />
                 )}
 
                 {/* menu label */}
-                {item.isHeader && !item.child && !collapsed && (
+                {(item as any).isHeader && !('child' in item) && !collapsed && (
                   <MenuLabel item={item} trans={trans} />
                 )}
 

@@ -39,7 +39,7 @@ export default function StopTimerButton() {
             onClick={handleStop}
             disabled={isStopping}
             color="destructive"
-            size="sm icon"
+            size="icon"
             variant="outline"
             className="rounded-full"
             aria-label={isStopping ? 'Stopping…' : 'Stop timer'}
