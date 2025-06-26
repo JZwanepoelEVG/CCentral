@@ -7,7 +7,7 @@ import {useSelector} from "react-redux";
 // import AddBlock from "../common/add-block";
 const LogoutFooter = () => {
 
-  const session = useSelector((state) => state.session);
+  const session = useSelector((state: any) => state.session);
   return (
     <>
       {/*<AddBlock />*/}

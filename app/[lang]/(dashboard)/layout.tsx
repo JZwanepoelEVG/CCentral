@@ -19,7 +19,7 @@ const layout = async ({
     }
 
     // Load translations
-    const trans = await getDictionary(lang);
+    const trans = await getDictionary(lang as 'en' | 'bn' | 'ar');
 
     return (
         <DashBoardLayoutProvider trans={trans}>

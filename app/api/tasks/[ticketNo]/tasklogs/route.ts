@@ -7,11 +7,9 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
     req: NextRequest,
-    context: { params: { ticketNo: string } }  // only ticketNo here
+    context: any
 ) {
-    // await the async params object before destructuring
-    const { ticketNo } = await context.params;
-    const id = parseInt(ticketNo, 10);
+    const id = parseInt(context.params.ticketNo, 10);
 
     if (isNaN(id)) {
         return Response.json(

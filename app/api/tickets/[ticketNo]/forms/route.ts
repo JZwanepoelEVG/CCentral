@@ -4,7 +4,7 @@ import { getFormsForTicket } from "@/src/lib/data/formService";
 
 export async function GET(
     request: NextRequest,
-    context: { params: Promise<{ ticketNo: string }> }
+    context: any
 ) {
     try {
         // 1. Await the params promise

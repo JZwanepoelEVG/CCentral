@@ -116,10 +116,9 @@ interface TaskCardProps {
 }
 
 const TaskCard = ({ task }: TaskCardProps) => {
-  const { attributes, listeners, setNodeRef, transform, transition } = useDraggable({ id: task.id, data: { status: task.status } });
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({ id: task.id, data: { status: task.status } });
   const style = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-    transition,
   };
 
   return (
