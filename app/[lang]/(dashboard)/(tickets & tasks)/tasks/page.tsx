@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Search, Eye } from "lucide-react";
 import StartTimerButton from "@/components/StartTimerButton";
+import moment from "moment-timezone";
 
 
 type Status = "todo" | "in-progress" | "completed";
@@ -33,7 +34,7 @@ interface Task {
   details?: string;
   createdAt?: string;
   resolved?: number;
-  estimatedTime?: string;
+  allocatedTime?: string;
   companyName?: string;
   ticketNumber?: string;
   ticketSubject?: string;
@@ -41,6 +42,7 @@ interface Task {
   projectName?: string;
   status: Status;
   resolution?: string;
+  createdBy?: string;
 }
 
 
@@ -122,20 +124,20 @@ const TaskCard = ({ task, onView }: TaskCardProps) => {
           <span className="font-semibold">Client:</span> {task.client}
         </p>
         <p>
-          <span className="font-semibold">Due:</span> {task.dueDate}
+          <span className="font-semibold">Due:</span> {moment(task.dueDate).format('dddd -  DD MMM yyyy')}
         </p>
         <p>
           <span className="font-semibold">Severity:</span> {task.severity}
         </p>
         <p>
-          <span className="font-semibold">Est. Time:</span> {task.estimatedTime}
+          <span className="font-semibold">Est. Time:</span> {task.allocatedTime}
         </p>
-        <p>
-          <span className="font-semibold">Company:</span> {task.companyName}
+          <p>
+          <span className="font-semibold">Created:</span> {task.createdBy}
         </p>
         {task.ticketNumber && (
           <p>
-            <span className="font-semibold">Linked Ticket:</span> {task.ticketNumber}
+            <span className="col-span-2 font-semibold">Linked Ticket:</span> #{padStart(task.ticketNumber, 6 , '0')} | {task.ticketSubject}
           </p>
         )}
         {task.projectName && (

@@ -25,8 +25,10 @@ export async function GET() {
       ticketNumber: t.LinkedToTicketID ? String(t.LinkedToTicketID) : undefined,
       ticketSubject: t.TicketSubject,
       projectId: t.LinkedToProjectID,
+      allocatedTime: t.AllocatedTime,
       projectName: t.ProjectName,
       resolved: t.Resolved,
+      createdBy: t.CreatedBy,
       status:
         t.Status === 0
           ? 'todo'
