@@ -7,7 +7,8 @@ export async function getUserTasksFromDatabase(userId: number) {
     const result = await pool
       .request()
       .input('UserID', sql.Int, userId)
-      .execute('sp_GET_UserTasks');
+      // Updated stored procedure includes additional fields
+      .execute('sp_GET_UserTasksV3');
 
     return result.recordset;
   } catch (err) {

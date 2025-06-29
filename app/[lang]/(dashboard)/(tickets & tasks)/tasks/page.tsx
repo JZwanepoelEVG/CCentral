@@ -26,12 +26,19 @@ type Status = "todo" | "in-progress" | "completed";
 interface Task {
   id: string;
   client: string;
+  clientId?: number;
   dueDate: string;
   severity: string;
   subject: string;
+  details?: string;
+  createdAt?: string;
+  resolved?: number;
   estimatedTime?: string;
   companyName?: string;
   ticketNumber?: string;
+  ticketSubject?: string;
+  projectId?: number;
+  projectName?: string;
   status: Status;
   resolution?: string;
 }
@@ -131,6 +138,11 @@ const TaskCard = ({ task, onView }: TaskCardProps) => {
             <span className="font-semibold">Linked Ticket:</span> {task.ticketNumber}
           </p>
         )}
+        {task.projectName && (
+          <p>
+            <span className="font-semibold">Project:</span> {task.projectName}
+          </p>
+        )}
         </div>
       </CardContent>
     </Card>
@@ -173,6 +185,8 @@ const TasksPage = () => {
       t.client?.toLowerCase().includes(term) ||
       t.companyName?.toLowerCase().includes(term) ||
       (t.ticketNumber && t.ticketNumber.toLowerCase().includes(term)) ||
+      t.projectName?.toLowerCase().includes(term) ||
+      t.ticketSubject?.toLowerCase().includes(term) ||
       t.id.toString().toLowerCase().includes(term)
     );
   });
@@ -250,8 +264,21 @@ const TasksPage = () => {
                 <span className="font-semibold">Client:</span> {detailTask.client}
               </p>
               <p>
-                <span className="font-semibold">Company:</span> {detailTask.companyName}
+                <span className="font-semibold">Due:</span> {detailTask.dueDate}
               </p>
+              <p>
+                <span className="font-semibold">Severity:</span> {detailTask.severity}
+              </p>
+              {detailTask.ticketNumber && (
+                <p>
+                  <span className="font-semibold">Linked Ticket:</span> {detailTask.ticketNumber}
+                </p>
+              )}
+              {detailTask.projectName && (
+                <p>
+                  <span className="font-semibold">Project:</span> {detailTask.projectName}
+                </p>
+              )}
             </div>
           )}
           <DialogFooter>

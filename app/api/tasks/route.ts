@@ -16,9 +16,17 @@ export async function GET() {
     const tasks = rawTasks.map((t: any) => ({
       id: String(t.Instance_ID),
       client: t.Client,
+      clientId: t.ClientID,
+      details: t.Details,
       dueDate: t.DueDate,
+      createdAt: t.CreatedAt,
       severity: t.Severity,
       subject: t.Subject,
+      ticketNumber: t.LinkedToTicketID ? String(t.LinkedToTicketID) : undefined,
+      ticketSubject: t.TicketSubject,
+      projectId: t.LinkedToProjectID,
+      projectName: t.ProjectName,
+      resolved: t.Resolved,
       status:
         t.Status === 0
           ? 'todo'
