@@ -17,7 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, Eye } from "lucide-react";
+import StartTimerButton from "@/components/StartTimerButton";
 
 
 type Status = "todo" | "in-progress" | "completed";
@@ -105,10 +106,11 @@ interface ColumnProps {
   label: string;
   status: Status;
   tasks: Task[];
+  onViewTask: (task: Task) => void;
   borderColor?: string;
 }
 
-const Column: React.FC<ColumnProps> = ({ label, status, tasks, borderColor = 'border-gray-800' }) => {
+const Column: React.FC<ColumnProps> = ({ label, status, tasks, onViewTask, borderColor = 'border-gray-800' }) => {
   const { setNodeRef } = useDroppable({ id: status });
 
   return (
@@ -126,7 +128,7 @@ const Column: React.FC<ColumnProps> = ({ label, status, tasks, borderColor = 'bo
           {label}
         </h3>
         {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
+            <TaskCard key={task.id} task={task} onView={onViewTask} />
         ))}
       </div>
   );
@@ -134,9 +136,10 @@ const Column: React.FC<ColumnProps> = ({ label, status, tasks, borderColor = 'bo
 
 interface TaskCardProps {
   task: Task;
+  onView: (task: Task) => void;
 }
 
-const TaskCard = ({ task }: TaskCardProps) => {
+const TaskCard = ({ task, onView }: TaskCardProps) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useDraggable({ id: task.id, data: { status: task.status } });
   const style = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
@@ -156,8 +159,17 @@ const TaskCard = ({ task }: TaskCardProps) => {
         <CardTitle className="text-sm w-100">
           <div className="flex justify-between md:grid md:grid-cols-2 gap-2 items-center pb-2">
             <span>#{padStart(task.id,6,'0')} | {task.subject}</span>
-            <span className="md:justify-self-end pr-2">
-               -----
+            <span className="md:justify-self-end pr-2 flex gap-1">
+               <StartTimerButton ticketId={task.id} />
+               <Button
+                 size="icon"
+                 variant="outline"
+                 color="secondary"
+                 onClick={() => onView(task)}
+                 aria-label="View task details"
+               >
+                 <Eye className="w-4 h-4" />
+               </Button>
             </span>
           </div>
         </CardTitle>
@@ -195,6 +207,7 @@ const TasksPage = () => {
   const [resolutionOpen, setResolutionOpen] = useState(false);
   const [resolutionText, setResolutionText] = useState("");
   const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
+  const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredTasks = tasks.filter((t) => {
@@ -207,6 +220,10 @@ const TasksPage = () => {
       t.id.includes(term)
     );
   });
+
+  const handleViewTask = (task: Task) => {
+    setDetailTask(task);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -263,6 +280,30 @@ const TasksPage = () => {
         />
       </div>
 
+      <Dialog open={!!detailTask} onOpenChange={(o) => !o && setDetailTask(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Task Details</DialogTitle>
+          </DialogHeader>
+          {detailTask && (
+            <div className="space-y-2 text-sm">
+              <p>
+                <span className="font-semibold">Subject:</span> {detailTask.subject}
+              </p>
+              <p>
+                <span className="font-semibold">Client:</span> {detailTask.client}
+              </p>
+              <p>
+                <span className="font-semibold">Company:</span> {detailTask.companyName}
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setDetailTask(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={resolutionOpen} onOpenChange={setResolutionOpen}>
         <DialogContent>
           <DialogHeader>
@@ -292,18 +333,21 @@ const TasksPage = () => {
             status="todo"
             borderColor={'border-amber-900'}
             tasks={filteredTasks.filter((t) => t.status === "todo")}
+            onViewTask={handleViewTask}
           />
           <Column
             label="In-Progress"
             status="in-progress"
             borderColor={'border-blue-400'}
             tasks={filteredTasks.filter((t) => t.status === "in-progress")}
+            onViewTask={handleViewTask}
           />
           <Column
             label="Completed"
             status="completed"
             borderColor={'border-lime-500'}
             tasks={filteredTasks.filter((t) => t.status === "completed")}
+            onViewTask={handleViewTask}
           />
         </div>
       </DndContext>
