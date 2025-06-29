@@ -6,7 +6,6 @@ import { Breadcrumbs, BreadcrumbItem } from "@/components/ui/breadcrumbs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {padStart} from "lodash-es";
-import {Icon} from "@iconify/react";
 import {
   Dialog,
   DialogContent,
@@ -14,10 +13,11 @@ import {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-  DialogClose,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 
 
 type Status = "todo" | "in-progress" | "completed";
@@ -195,6 +195,18 @@ const TasksPage = () => {
   const [resolutionOpen, setResolutionOpen] = useState(false);
   const [resolutionText, setResolutionText] = useState("");
   const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredTasks = tasks.filter((t) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      t.subject.toLowerCase().includes(term) ||
+      t.client.toLowerCase().includes(term) ||
+      t.companyName.toLowerCase().includes(term) ||
+      (t.ticketNumber && t.ticketNumber.toLowerCase().includes(term)) ||
+      t.id.includes(term)
+    );
+  });
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -241,6 +253,15 @@ const TasksPage = () => {
         <BreadcrumbItem className="text-primary">Tasks</BreadcrumbItem>
       </Breadcrumbs>
       <div className="mt-5 text-2xl font-medium  text-default-900 mb-4">Tasks</div>
+      <div className="relative max-w-xs mb-4">
+        <Search className="absolute top-1/2 -translate-y-1/2 left-2 w-4 h-4 text-default-500" />
+        <Input
+          placeholder="Search tasks..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-7"
+        />
+      </div>
 
       <Dialog open={resolutionOpen} onOpenChange={setResolutionOpen}>
         <DialogContent>
@@ -270,19 +291,19 @@ const TasksPage = () => {
             label="To-Do"
             status="todo"
             borderColor={'border-amber-900'}
-            tasks={tasks.filter((t) => t.status === "todo")}
+            tasks={filteredTasks.filter((t) => t.status === "todo")}
           />
           <Column
             label="In-Progress"
             status="in-progress"
             borderColor={'border-blue-400'}
-            tasks={tasks.filter((t) => t.status === "in-progress")}
+            tasks={filteredTasks.filter((t) => t.status === "in-progress")}
           />
           <Column
             label="Completed"
             status="completed"
             borderColor={'border-lime-500'}
-            tasks={tasks.filter((t) => t.status === "completed")}
+            tasks={filteredTasks.filter((t) => t.status === "completed")}
           />
         </div>
       </DndContext>
