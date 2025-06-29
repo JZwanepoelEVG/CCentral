@@ -39,14 +39,14 @@ export default function StopTimerButton() {
             onClick={handleStop}
             disabled={isStopping}
             color="destructive"
-            size="icon"
-            variant="outline"
-            className="rounded-full"
+            size="xs"
+            variant="ghost"
+            className="rounded-full p-0"
             aria-label={isStopping ? 'Stopping…' : 'Stop timer'}
         >
             <Icon
                 icon="material-symbols:stop"
-                className={`h-4 w-4 transition-transform ${
+                className={`h-6 w-6 transition-transform ${
                     isStopping ? 'animate-spin' : ''
                 }`}
             />
