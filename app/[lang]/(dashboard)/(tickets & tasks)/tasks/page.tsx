@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DndContext, useDraggable, useDroppable, DragEndEvent } from "@dnd-kit/core";
 import { Breadcrumbs, BreadcrumbItem } from "@/components/ui/breadcrumbs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Search, Eye } from "lucide-react";
 import StartTimerButton from "@/components/StartTimerButton";
+import moment from "moment-timezone";
 
 
 type Status = "todo" | "in-progress" | "completed";
@@ -26,81 +27,24 @@ type Status = "todo" | "in-progress" | "completed";
 interface Task {
   id: string;
   client: string;
+  clientId?: number;
   dueDate: string;
   severity: string;
   subject: string;
-  estimatedTime: string;
-  companyName: string;
+  details?: string;
+  createdAt?: string;
+  resolved?: number;
+  allocatedTime?: string;
+  companyName?: string;
   ticketNumber?: string;
+  ticketSubject?: string;
+  projectId?: number;
+  projectName?: string;
   status: Status;
   resolution?: string;
+  createdBy?: string;
 }
 
-const initialTasks: Task[] = [
-  {
-    id: "1",
-    client: "John Doe",
-    dueDate: "2024-07-01",
-    severity: "High",
-    subject: "Fix login bug",
-    estimatedTime: "3h",
-    companyName: "Acme Corp",
-    ticketNumber: "T-101",
-    status: "todo",
-  },
-  {
-    id: "2",
-    client: "Jane Smith",
-    dueDate: "2024-07-05",
-    severity: "Medium",
-    subject: "Update documentation",
-    estimatedTime: "2h",
-    companyName: "Widgets Ltd",
-    status: "todo",
-  },
-  {
-    id: "3",
-    client: "Bob Jones",
-    dueDate: "2024-06-30",
-    severity: "Low",
-    subject: "Design new logo",
-    estimatedTime: "5h",
-    companyName: "Brandify",
-    ticketNumber: "T-102",
-    status: "in-progress",
-  },
-  {
-    id: "4",
-    client: "Alice Green",
-    dueDate: "2024-07-02",
-    severity: "High",
-    subject: "Database migration",
-    estimatedTime: "8h",
-    companyName: "DataSys",
-    status: "in-progress",
-  },
-  {
-    id: "5",
-    client: "Steve White",
-    dueDate: "2024-06-20",
-    severity: "Medium",
-    subject: "Create onboarding guide",
-    estimatedTime: "4h",
-    companyName: "Onboard Co",
-    status: "completed",
-  },
-  {
-    id: "6",
-    client: "Carol Black",
-    dueDate: "2024-06-18",
-    severity: "Low",
-    subject: "Cleanup repo",
-    estimatedTime: "1h",
-    companyName: "Utils Inc",
-    ticketNumber: "T-099",
-    status: "completed",
-  },
-];
 
 interface ColumnProps {
   label: string;
@@ -180,20 +124,25 @@ const TaskCard = ({ task, onView }: TaskCardProps) => {
           <span className="font-semibold">Client:</span> {task.client}
         </p>
         <p>
-          <span className="font-semibold">Due:</span> {task.dueDate}
+          <span className="font-semibold">Due:</span> {moment(task.dueDate).format('dddd -  DD MMM yyyy')}
         </p>
         <p>
           <span className="font-semibold">Severity:</span> {task.severity}
         </p>
         <p>
-          <span className="font-semibold">Est. Time:</span> {task.estimatedTime}
+          <span className="font-semibold">Est. Time:</span> {task.allocatedTime}
         </p>
-        <p>
-          <span className="font-semibold">Company:</span> {task.companyName}
+          <p>
+          <span className="font-semibold">Created:</span> {task.createdBy}
         </p>
         {task.ticketNumber && (
           <p>
-            <span className="font-semibold">Linked Ticket:</span> {task.ticketNumber}
+            <span className="col-span-2 font-semibold">Linked Ticket:</span> #{padStart(task.ticketNumber, 6 , '0')} | {task.ticketSubject}
+          </p>
+        )}
+        {task.projectName && (
+          <p>
+            <span className="font-semibold">Project:</span> {task.projectName}
           </p>
         )}
         </div>
@@ -203,21 +152,44 @@ const TaskCard = ({ task, onView }: TaskCardProps) => {
 };
 
 const TasksPage = () => {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
   const [resolutionOpen, setResolutionOpen] = useState(false);
   const [resolutionText, setResolutionText] = useState("");
   const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
+  useEffect(() => {
+    async function fetchTasks() {
+      try {
+        const res = await fetch("/api/tasks");
+        const data = await res.json();
+        if (data.success) {
+          setTasks(data.tasks);
+        } else {
+          console.error("Task fetch failed:", data.error);
+        }
+      } catch (err) {
+        console.error("Error fetching tasks:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTasks();
+  }, []);
+
   const filteredTasks = tasks.filter((t) => {
     const term = searchTerm.toLowerCase();
     return (
-      t.subject.toLowerCase().includes(term) ||
-      t.client.toLowerCase().includes(term) ||
-      t.companyName.toLowerCase().includes(term) ||
+      t.subject?.toLowerCase().includes(term) ||
+      t.client?.toLowerCase().includes(term) ||
+      t.companyName?.toLowerCase().includes(term) ||
       (t.ticketNumber && t.ticketNumber.toLowerCase().includes(term)) ||
-      t.id.includes(term)
+      t.projectName?.toLowerCase().includes(term) ||
+      t.ticketSubject?.toLowerCase().includes(term) ||
+      t.id.toString().toLowerCase().includes(term)
     );
   });
 
@@ -294,8 +266,21 @@ const TasksPage = () => {
                 <span className="font-semibold">Client:</span> {detailTask.client}
               </p>
               <p>
-                <span className="font-semibold">Company:</span> {detailTask.companyName}
+                <span className="font-semibold">Due:</span> {detailTask.dueDate}
               </p>
+              <p>
+                <span className="font-semibold">Severity:</span> {detailTask.severity}
+              </p>
+              {detailTask.ticketNumber && (
+                <p>
+                  <span className="font-semibold">Linked Ticket:</span> {detailTask.ticketNumber}
+                </p>
+              )}
+              {detailTask.projectName && (
+                <p>
+                  <span className="font-semibold">Project:</span> {detailTask.projectName}
+                </p>
+              )}
             </div>
           )}
           <DialogFooter>
@@ -326,31 +311,35 @@ const TasksPage = () => {
         </DialogContent>
       </Dialog>
 
-      <DndContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Column
-            label="To-Do"
-            status="todo"
-            borderColor={'border-amber-900'}
-            tasks={filteredTasks.filter((t) => t.status === "todo")}
-            onViewTask={handleViewTask}
-          />
-          <Column
-            label="In-Progress"
-            status="in-progress"
-            borderColor={'border-blue-400'}
-            tasks={filteredTasks.filter((t) => t.status === "in-progress")}
-            onViewTask={handleViewTask}
-          />
-          <Column
-            label="Completed"
-            status="completed"
-            borderColor={'border-lime-500'}
-            tasks={filteredTasks.filter((t) => t.status === "completed")}
-            onViewTask={handleViewTask}
-          />
-        </div>
-      </DndContext>
+      {loading ? (
+        <p>Loading tasks...</p>
+      ) : (
+        <DndContext onDragEnd={handleDragEnd}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Column
+              label="To-Do"
+              status="todo"
+              borderColor={"border-amber-900"}
+              tasks={filteredTasks.filter((t) => t.status === "todo")}
+              onViewTask={handleViewTask}
+            />
+            <Column
+              label="In-Progress"
+              status="in-progress"
+              borderColor={"border-blue-400"}
+              tasks={filteredTasks.filter((t) => t.status === "in-progress")}
+              onViewTask={handleViewTask}
+            />
+            <Column
+              label="Completed"
+              status="completed"
+              borderColor={"border-lime-500"}
+              tasks={filteredTasks.filter((t) => t.status === "completed")}
+              onViewTask={handleViewTask}
+            />
+          </div>
+        </DndContext>
+      )}
     </div>
   );
 };
