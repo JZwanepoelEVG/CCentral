@@ -7,6 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {padStart} from "lodash-es";
 import {Icon} from "@iconify/react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 
 type Status = "todo" | "in-progress" | "completed";
@@ -21,6 +32,7 @@ interface Task {
   companyName: string;
   ticketNumber?: string;
   status: Status;
+  resolution?: string;
 }
 
 const initialTasks: Task[] = [
@@ -180,16 +192,45 @@ const TaskCard = ({ task }: TaskCardProps) => {
 
 const TasksPage = () => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [resolutionOpen, setResolutionOpen] = useState(false);
+  const [resolutionText, setResolutionText] = useState("");
+  const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
 
     const newStatus = over.id as Status;
+    const activeTask = tasks.find((t) => t.id === active.id);
+    if (!activeTask) return;
+
+    if (newStatus === "completed" && activeTask.status !== "completed") {
+      setPendingTaskId(active.id as string);
+      setResolutionOpen(true);
+      return;
+    }
 
     setTasks((prev) =>
       prev.map((t) => (t.id === active.id ? { ...t, status: newStatus } : t))
     );
+  };
+
+  const handleResolutionSubmit = () => {
+    if (!pendingTaskId) return;
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === pendingTaskId ? { ...t, status: "completed", resolution: resolutionText } : t
+      )
+    );
+    setResolutionText("");
+    setPendingTaskId(null);
+    setResolutionOpen(false);
+  };
+
+  const handleResolutionCancel = () => {
+    setResolutionText("");
+    setPendingTaskId(null);
+    setResolutionOpen(false);
   };
 
   return (
@@ -200,6 +241,28 @@ const TasksPage = () => {
         <BreadcrumbItem className="text-primary">Tasks</BreadcrumbItem>
       </Breadcrumbs>
       <div className="mt-5 text-2xl font-medium  text-default-900 mb-4">Tasks</div>
+
+      <Dialog open={resolutionOpen} onOpenChange={setResolutionOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Task Resolution</DialogTitle>
+            <DialogDescription>
+              Please provide a resolution description before completing this task.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={resolutionText}
+            onChange={(e) => setResolutionText(e.target.value)}
+            placeholder="Resolution details"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={handleResolutionCancel}>Cancel</Button>
+            <Button onClick={handleResolutionSubmit} disabled={!resolutionText.trim()}>
+              Submit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <DndContext onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
