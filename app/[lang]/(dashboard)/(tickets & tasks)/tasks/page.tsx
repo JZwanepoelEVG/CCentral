@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DndContext, useDraggable, useDroppable, DragEndEvent } from "@dnd-kit/core";
 import { Breadcrumbs, BreadcrumbItem } from "@/components/ui/breadcrumbs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,71 +36,6 @@ interface Task {
   resolution?: string;
 }
 
-const initialTasks: Task[] = [
-  {
-    id: "1",
-    client: "John Doe",
-    dueDate: "2024-07-01",
-    severity: "High",
-    subject: "Fix login bug",
-    estimatedTime: "3h",
-    companyName: "Acme Corp",
-    ticketNumber: "T-101",
-    status: "todo",
-  },
-  {
-    id: "2",
-    client: "Jane Smith",
-    dueDate: "2024-07-05",
-    severity: "Medium",
-    subject: "Update documentation",
-    estimatedTime: "2h",
-    companyName: "Widgets Ltd",
-    status: "todo",
-  },
-  {
-    id: "3",
-    client: "Bob Jones",
-    dueDate: "2024-06-30",
-    severity: "Low",
-    subject: "Design new logo",
-    estimatedTime: "5h",
-    companyName: "Brandify",
-    ticketNumber: "T-102",
-    status: "in-progress",
-  },
-  {
-    id: "4",
-    client: "Alice Green",
-    dueDate: "2024-07-02",
-    severity: "High",
-    subject: "Database migration",
-    estimatedTime: "8h",
-    companyName: "DataSys",
-    status: "in-progress",
-  },
-  {
-    id: "5",
-    client: "Steve White",
-    dueDate: "2024-06-20",
-    severity: "Medium",
-    subject: "Create onboarding guide",
-    estimatedTime: "4h",
-    companyName: "Onboard Co",
-    status: "completed",
-  },
-  {
-    id: "6",
-    client: "Carol Black",
-    dueDate: "2024-06-18",
-    severity: "Low",
-    subject: "Cleanup repo",
-    estimatedTime: "1h",
-    companyName: "Utils Inc",
-    ticketNumber: "T-099",
-    status: "completed",
-  },
-];
 
 interface ColumnProps {
   label: string;
@@ -203,12 +138,33 @@ const TaskCard = ({ task, onView }: TaskCardProps) => {
 };
 
 const TasksPage = () => {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
   const [resolutionOpen, setResolutionOpen] = useState(false);
   const [resolutionText, setResolutionText] = useState("");
   const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    async function fetchTasks() {
+      try {
+        const res = await fetch("/api/tasks");
+        const data = await res.json();
+        if (data.success) {
+          setTasks(data.tasks);
+        } else {
+          console.error("Task fetch failed:", data.error);
+        }
+      } catch (err) {
+        console.error("Error fetching tasks:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTasks();
+  }, []);
 
   const filteredTasks = tasks.filter((t) => {
     const term = searchTerm.toLowerCase();
@@ -326,31 +282,35 @@ const TasksPage = () => {
         </DialogContent>
       </Dialog>
 
-      <DndContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Column
-            label="To-Do"
-            status="todo"
-            borderColor={'border-amber-900'}
-            tasks={filteredTasks.filter((t) => t.status === "todo")}
-            onViewTask={handleViewTask}
-          />
-          <Column
-            label="In-Progress"
-            status="in-progress"
-            borderColor={'border-blue-400'}
-            tasks={filteredTasks.filter((t) => t.status === "in-progress")}
-            onViewTask={handleViewTask}
-          />
-          <Column
-            label="Completed"
-            status="completed"
-            borderColor={'border-lime-500'}
-            tasks={filteredTasks.filter((t) => t.status === "completed")}
-            onViewTask={handleViewTask}
-          />
-        </div>
-      </DndContext>
+      {loading ? (
+        <p>Loading tasks...</p>
+      ) : (
+        <DndContext onDragEnd={handleDragEnd}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Column
+              label="To-Do"
+              status="todo"
+              borderColor={"border-amber-900"}
+              tasks={filteredTasks.filter((t) => t.status === "todo")}
+              onViewTask={handleViewTask}
+            />
+            <Column
+              label="In-Progress"
+              status="in-progress"
+              borderColor={"border-blue-400"}
+              tasks={filteredTasks.filter((t) => t.status === "in-progress")}
+              onViewTask={handleViewTask}
+            />
+            <Column
+              label="Completed"
+              status="completed"
+              borderColor={"border-lime-500"}
+              tasks={filteredTasks.filter((t) => t.status === "completed")}
+              onViewTask={handleViewTask}
+            />
+          </div>
+        </DndContext>
+      )}
     </div>
   );
 };
