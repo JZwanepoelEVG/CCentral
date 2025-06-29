@@ -29,8 +29,8 @@ interface Task {
   dueDate: string;
   severity: string;
   subject: string;
-  estimatedTime: string;
-  companyName: string;
+  estimatedTime?: string;
+  companyName?: string;
   ticketNumber?: string;
   status: Status;
   resolution?: string;
@@ -169,11 +169,11 @@ const TasksPage = () => {
   const filteredTasks = tasks.filter((t) => {
     const term = searchTerm.toLowerCase();
     return (
-      t.subject.toLowerCase().includes(term) ||
-      t.client.toLowerCase().includes(term) ||
-      t.companyName.toLowerCase().includes(term) ||
+      t.subject?.toLowerCase().includes(term) ||
+      t.client?.toLowerCase().includes(term) ||
+      t.companyName?.toLowerCase().includes(term) ||
       (t.ticketNumber && t.ticketNumber.toLowerCase().includes(term)) ||
-      t.id.includes(term)
+      t.id.toString().toLowerCase().includes(term)
     );
   });
 

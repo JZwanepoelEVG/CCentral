@@ -12,7 +12,21 @@ export async function GET() {
   const userId = session.user.userId;
 
   try {
-    const tasks = await getUserTasksFromDatabase(userId);
+    const rawTasks = await getUserTasksFromDatabase(userId);
+    const tasks = rawTasks.map((t: any) => ({
+      id: String(t.Instance_ID),
+      client: t.Client,
+      dueDate: t.DueDate,
+      severity: t.Severity,
+      subject: t.Subject,
+      status:
+        t.Status === 0
+          ? 'todo'
+          : t.Status === 1
+            ? 'in-progress'
+            : 'completed',
+    }));
+
     return Response.json({ success: true, tasks });
   } catch (err) {
     console.error('Database error:', err);
