@@ -6,7 +6,19 @@ import { Breadcrumbs, BreadcrumbItem } from "@/components/ui/breadcrumbs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {padStart} from "lodash-es";
-import {Icon} from "@iconify/react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Search, Eye } from "lucide-react";
+import StartTimerButton from "@/components/StartTimerButton";
 
 
 type Status = "todo" | "in-progress" | "completed";
@@ -21,6 +33,7 @@ interface Task {
   companyName: string;
   ticketNumber?: string;
   status: Status;
+  resolution?: string;
 }
 
 const initialTasks: Task[] = [
@@ -93,10 +106,11 @@ interface ColumnProps {
   label: string;
   status: Status;
   tasks: Task[];
+  onViewTask: (task: Task) => void;
   borderColor?: string;
 }
 
-const Column: React.FC<ColumnProps> = ({ label, status, tasks, borderColor = 'border-gray-800' }) => {
+const Column: React.FC<ColumnProps> = ({ label, status, tasks, onViewTask, borderColor = 'border-gray-800' }) => {
   const { setNodeRef } = useDroppable({ id: status });
 
   return (
@@ -114,7 +128,7 @@ const Column: React.FC<ColumnProps> = ({ label, status, tasks, borderColor = 'bo
           {label}
         </h3>
         {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
+            <TaskCard key={task.id} task={task} onView={onViewTask} />
         ))}
       </div>
   );
@@ -122,9 +136,10 @@ const Column: React.FC<ColumnProps> = ({ label, status, tasks, borderColor = 'bo
 
 interface TaskCardProps {
   task: Task;
+  onView: (task: Task) => void;
 }
 
-const TaskCard = ({ task }: TaskCardProps) => {
+const TaskCard = ({ task, onView }: TaskCardProps) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useDraggable({ id: task.id, data: { status: task.status } });
   const style = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
@@ -144,8 +159,17 @@ const TaskCard = ({ task }: TaskCardProps) => {
         <CardTitle className="text-sm w-100">
           <div className="flex justify-between md:grid md:grid-cols-2 gap-2 items-center pb-2">
             <span>#{padStart(task.id,6,'0')} | {task.subject}</span>
-            <span className="md:justify-self-end pr-2">
-               -----
+            <span className="md:justify-self-end pr-2 flex gap-1">
+               <StartTimerButton ticketId={task.id} />
+               <Button
+                 size="icon"
+                 variant="outline"
+                 color="secondary"
+                 onClick={() => onView(task)}
+                 aria-label="View task details"
+               >
+                 <Eye className="w-4 h-4" />
+               </Button>
             </span>
           </div>
         </CardTitle>
@@ -180,16 +204,62 @@ const TaskCard = ({ task }: TaskCardProps) => {
 
 const TasksPage = () => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [resolutionOpen, setResolutionOpen] = useState(false);
+  const [resolutionText, setResolutionText] = useState("");
+  const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
+  const [detailTask, setDetailTask] = useState<Task | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredTasks = tasks.filter((t) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      t.subject.toLowerCase().includes(term) ||
+      t.client.toLowerCase().includes(term) ||
+      t.companyName.toLowerCase().includes(term) ||
+      (t.ticketNumber && t.ticketNumber.toLowerCase().includes(term)) ||
+      t.id.includes(term)
+    );
+  });
+
+  const handleViewTask = (task: Task) => {
+    setDetailTask(task);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
 
     const newStatus = over.id as Status;
+    const activeTask = tasks.find((t) => t.id === active.id);
+    if (!activeTask) return;
+
+    if (newStatus === "completed" && activeTask.status !== "completed") {
+      setPendingTaskId(active.id as string);
+      setResolutionOpen(true);
+      return;
+    }
 
     setTasks((prev) =>
       prev.map((t) => (t.id === active.id ? { ...t, status: newStatus } : t))
     );
+  };
+
+  const handleResolutionSubmit = () => {
+    if (!pendingTaskId) return;
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === pendingTaskId ? { ...t, status: "completed", resolution: resolutionText } : t
+      )
+    );
+    setResolutionText("");
+    setPendingTaskId(null);
+    setResolutionOpen(false);
+  };
+
+  const handleResolutionCancel = () => {
+    setResolutionText("");
+    setPendingTaskId(null);
+    setResolutionOpen(false);
   };
 
   return (
@@ -200,6 +270,61 @@ const TasksPage = () => {
         <BreadcrumbItem className="text-primary">Tasks</BreadcrumbItem>
       </Breadcrumbs>
       <div className="mt-5 text-2xl font-medium  text-default-900 mb-4">Tasks</div>
+      <div className="relative max-w-xs mb-4">
+        <Search className="absolute top-1/2 -translate-y-1/2 left-2 w-4 h-4 text-default-500" />
+        <Input
+          placeholder="Search tasks..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-7"
+        />
+      </div>
+
+      <Dialog open={!!detailTask} onOpenChange={(o) => !o && setDetailTask(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Task Details</DialogTitle>
+          </DialogHeader>
+          {detailTask && (
+            <div className="space-y-2 text-sm">
+              <p>
+                <span className="font-semibold">Subject:</span> {detailTask.subject}
+              </p>
+              <p>
+                <span className="font-semibold">Client:</span> {detailTask.client}
+              </p>
+              <p>
+                <span className="font-semibold">Company:</span> {detailTask.companyName}
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setDetailTask(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={resolutionOpen} onOpenChange={setResolutionOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Task Resolution</DialogTitle>
+            <DialogDescription>
+              Please provide a resolution description before completing this task.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={resolutionText}
+            onChange={(e) => setResolutionText(e.target.value)}
+            placeholder="Resolution details"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={handleResolutionCancel}>Cancel</Button>
+            <Button onClick={handleResolutionSubmit} disabled={!resolutionText.trim()}>
+              Submit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <DndContext onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -207,19 +332,22 @@ const TasksPage = () => {
             label="To-Do"
             status="todo"
             borderColor={'border-amber-900'}
-            tasks={tasks.filter((t) => t.status === "todo")}
+            tasks={filteredTasks.filter((t) => t.status === "todo")}
+            onViewTask={handleViewTask}
           />
           <Column
             label="In-Progress"
             status="in-progress"
             borderColor={'border-blue-400'}
-            tasks={tasks.filter((t) => t.status === "in-progress")}
+            tasks={filteredTasks.filter((t) => t.status === "in-progress")}
+            onViewTask={handleViewTask}
           />
           <Column
             label="Completed"
             status="completed"
             borderColor={'border-lime-500'}
-            tasks={tasks.filter((t) => t.status === "completed")}
+            tasks={filteredTasks.filter((t) => t.status === "completed")}
+            onViewTask={handleViewTask}
           />
         </div>
       </DndContext>
