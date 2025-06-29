@@ -8,7 +8,7 @@ export async function getUserTasksFromDatabase(userId: number) {
       .request()
       .input('UserID', sql.Int, userId)
       // call stored procedure for user tasks
-      .execute('sp_GET_UserTasks');
+      .execute('sp_GET_UserTasksV3');
 
     return result.recordset;
   } catch (err) {
