@@ -9,7 +9,8 @@ export async function GET(
     req: NextRequest,
     context: any
 ) {
-    const id = parseInt(context.params.ticketNo, 10);
+    const { ticketNo } = await context.params;
+    const id = parseInt(ticketNo, 10);
 
     if (isNaN(id)) {
         return Response.json(

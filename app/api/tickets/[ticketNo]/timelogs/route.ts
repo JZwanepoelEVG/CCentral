@@ -9,7 +9,9 @@ export async function GET(
     req: NextRequest,
     context: any
 ) {
-    const ticketId = parseInt(context.params.ticketNo, 10);
+    // Await the params promise before accessing its properties
+    const { ticketNo } = await context.params;
+    const ticketId = parseInt(ticketNo, 10);
 
     if (isNaN(ticketId)) {
         return Response.json(

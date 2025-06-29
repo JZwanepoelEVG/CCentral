@@ -5,6 +5,8 @@ import { DndContext, useDraggable, useDroppable, DragEndEvent } from "@dnd-kit/c
 import { Breadcrumbs, BreadcrumbItem } from "@/components/ui/breadcrumbs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import {padStart} from "lodash-es";
+import {Icon} from "@iconify/react";
 
 
 type Status = "todo" | "in-progress" | "completed";
@@ -91,23 +93,30 @@ interface ColumnProps {
   label: string;
   status: Status;
   tasks: Task[];
+  borderColor?: string;
 }
 
-const Column = ({ label, status, tasks }: ColumnProps) => {
+const Column: React.FC<ColumnProps> = ({ label, status, tasks, borderColor = 'border-gray-800' }) => {
   const { setNodeRef } = useDroppable({ id: status });
 
   return (
-    <div
-      ref={setNodeRef}
-      className="bg-gray-50 dark:bg-gray-800 rounded-md p-2 min-h-[350px] flex flex-col"
-    >
-      <h3 className="text-center font-semibold mb-2 text-default-900 dark:text-default-50">
-        {label}
-      </h3>
-      {tasks.map((task) => (
-        <TaskCard key={task.id} task={task} />
-      ))}
-    </div>
+      <div
+          ref={setNodeRef}
+          className={`
+        bg-gray-50 dark:bg-gray-800
+        border-t-4 border-solid
+        ${borderColor}
+        rounded-md p-2
+        min-h-[350px] flex flex-col
+      `}
+      >
+        <h3 className="text-center font-semibold mb-2 text-default-900 dark:text-default-50">
+          {label}
+        </h3>
+        {tasks.map((task) => (
+            <TaskCard key={task.id} task={task} />
+        ))}
+      </div>
   );
 };
 
@@ -116,9 +125,10 @@ interface TaskCardProps {
 }
 
 const TaskCard = ({ task }: TaskCardProps) => {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({ id: task.id, data: { status: task.status } });
+  const { attributes, listeners, setNodeRef, transform, transition } = useDraggable({ id: task.id, data: { status: task.status } });
   const style = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    transition,
   };
 
   return (
@@ -128,12 +138,20 @@ const TaskCard = ({ task }: TaskCardProps) => {
       {...listeners}
       {...attributes}
       tabIndex={0}
-      className="shadow-sm mb-2 cursor-grab focus:outline-none focus:ring-2 focus:ring-primary"
+      className="drop-shadow-lg mb-2 cursor-grab focus:outline-none focus:ring-2 focus:ring-primary"
     >
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm">{task.subject}</CardTitle>
+        <CardTitle className="text-sm w-100">
+          <div className="flex justify-between md:grid md:grid-cols-2 gap-2 items-center pb-2">
+            <span>#{padStart(task.id,6,'0')} | {task.subject}</span>
+            <span className="md:justify-self-end pr-2">
+               -----
+            </span>
+          </div>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="text-xs space-y-1">
+      <CardContent className="text-sm space-y-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <p>
           <span className="font-semibold">Client:</span> {task.client}
         </p>
@@ -151,9 +169,10 @@ const TaskCard = ({ task }: TaskCardProps) => {
         </p>
         {task.ticketNumber && (
           <p>
-            <span className="font-semibold">Ticket:</span> {task.ticketNumber}
+            <span className="font-semibold">Linked Ticket:</span> {task.ticketNumber}
           </p>
         )}
+        </div>
       </CardContent>
     </Card>
   );
@@ -180,23 +199,26 @@ const TasksPage = () => {
         <BreadcrumbItem>Tickets & Tasks</BreadcrumbItem>
         <BreadcrumbItem className="text-primary">Tasks</BreadcrumbItem>
       </Breadcrumbs>
-      <div className="mt-5 text-2xl font-medium text-default-900 mb-4">Tasks</div>
+      <div className="mt-5 text-2xl font-medium  text-default-900 mb-4">Tasks</div>
 
       <DndContext onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Column
             label="To-Do"
             status="todo"
+            borderColor={'border-amber-900'}
             tasks={tasks.filter((t) => t.status === "todo")}
           />
           <Column
             label="In-Progress"
             status="in-progress"
+            borderColor={'border-blue-400'}
             tasks={tasks.filter((t) => t.status === "in-progress")}
           />
           <Column
             label="Completed"
             status="completed"
+            borderColor={'border-lime-500'}
             tasks={tasks.filter((t) => t.status === "completed")}
           />
         </div>
